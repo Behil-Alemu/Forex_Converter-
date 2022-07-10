@@ -1,8 +1,10 @@
 from crypt import methods
 from decimal import Decimal
+from symtable import Symbol
+from unicodedata import decimal
 from unittest import result
 from flask import Flask, redirect,render_template,flash, request,session
-from forex_python.converter import CurrencyRates
+from forex_python.converter import CurrencyRates,CurrencyCodes
 from flask_debugtoolbar import DebugToolbarExtension
 import requests
 
@@ -34,32 +36,36 @@ def convert():
     # input = session['input']
 
     c = CurrencyRates()
-    amount = float(request.form['amount'])
+    cs = CurrencyCodes()
+
+    
     from_cur = (request.form.get('from')).upper()
     to_cur = (request.form.get('to')).upper()
-
-    result = c.convert(from_cur,to_cur, amount)
-    # try:
-    #     int_amount = isinstance(amount, int)
-    #     float_amount = isinstance(amount, float)
-    #     if int_amount or float_amount:
-    #         return amount
-    # except ValueError:
-    #     flash('Not a valid code')
-    #     return redirect('/')
-    # except TypeError:
-    #     flash('Not a valid code')
-    #     return redirect('/')
-    
-    # if isinstance(from_cur, str) and len(from_cur)== 3:
-    #     redirect('/')
-    #     flash('hi')
+    symbol = cs.get_symbol(to_cur)
 
 
-            
+
+    # str_amount = isinstance(amount, str)
+
+    while True:
+        try:
+            amount = float(request.form['amount'])
+            from_cur = (request.form.get('from')).upper()
+            to_cur = (request.form.get('to')).upper()
+            res = c.convert(from_cur,to_cur, amount)
+            result = round(res,2)
+
+            break
+        except ValueError:
+            flash("Oops!  That was no valid number.  Try again...", "error")
+            return redirect('/')
+        except:
+            flash("Oops!  That was no valid code.","error")
+            return redirect('/')
         
-        
-    return render_template("converted.html",from_cur=from_cur, to_cur=to_cur, result=result)
+    # result = c.convert(from_cur,to_cur, amount)
+
+    return render_template("converted.html",from_cur=from_cur, to_cur=to_cur, result=result, symbol=symbol)
 
 
 @app.route('/return-home')

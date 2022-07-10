@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Start Converting{% endblock%}
+{% block content %}
+<h1>Start Converting</h1>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+
+
+<form action="/result" class="converter-form" method="post">
+    <p><label for="from">Converting form:<input type="text" placeholder="USD" name="from" id="from"> </label>
+    </p>
+    <p>
+    <label for="to">Converting to:<input type="text" placeholder="USD" name="to" id="to"></label>
+    </p>
+    <p>
+    <label for="amount">Amount:<input type="text" placeholder="10" name="amount" id="amount"></label>
+    </p>
+   <button class="button">Convert!</button>
+</form>
+{% endblock %}

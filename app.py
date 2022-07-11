@@ -1,5 +1,6 @@
 from crypt import methods
 from decimal import Decimal
+from locale import currency
 from symtable import Symbol
 from unicodedata import decimal
 from unittest import result
@@ -7,6 +8,7 @@ from flask import Flask, redirect,render_template,flash, request,session
 from forex_python.converter import CurrencyRates,CurrencyCodes
 from flask_debugtoolbar import DebugToolbarExtension
 import requests
+from currency import Currencies
 
 
 app=Flask(__name__)
@@ -15,10 +17,6 @@ app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 
 debug = DebugToolbarExtension(app)
 
-# c = CurrencyRates()
-# c.get_rate('USD', 'ISK')
-# c.convert('USD','ISK', 10)
-# c.get_rates('USD')
 
 @app.route("/")
 def start_converter():
@@ -28,43 +26,32 @@ def start_converter():
     return render_template("start_converter.html")
 
 
+currency_c = Currencies()
 
-
-@app.route("/result", methods=["POST"])
+@app.route("/result")
 def convert():
     """show the converted currency"""
-    # input = session['input']
 
-    c = CurrencyRates()
-    cs = CurrencyCodes()
+    from_cur =  currency_c.check_valid_from(request.args.get('from'))
 
-    
-    from_cur = (request.form.get('from')).upper()
-    to_cur = (request.form.get('to')).upper()
-    symbol = cs.get_symbol(to_cur)
+    to_cur = currency_c.check_valid_to(request.args.get('to'))
+    symbol = currency_c.get_symbol(to_cur)
 
-
-
-    # str_amount = isinstance(amount, str)
 
     while True:
         try:
-            amount = float(request.form['amount'])
-            from_cur = (request.form.get('from')).upper()
-            to_cur = (request.form.get('to')).upper()
-            res = c.convert(from_cur,to_cur, amount)
-            result = round(res,2)
+            amount = float(request.args['amount'])
+            result = currency_c.converter(from_cur,to_cur,amount)
 
             break
         except ValueError:
             flash("Oops!  That was no valid number.  Try again...", "error")
             return redirect('/')
         except:
-            flash("Oops!  That was no valid code.","error")
+            msg = "Oops!  That was no valid code. Try exp EUR"
+            flash(msg,"error")
             return redirect('/')
         
-    # result = c.convert(from_cur,to_cur, amount)
-
     return render_template("converted.html",from_cur=from_cur, to_cur=to_cur, result=result, symbol=symbol)
 
 
